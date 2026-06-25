@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contato | ProVerga Engenharia</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter', Arial, sans-serif; color:#17222F; background:#E6E6E6; line-height:1.6; }
+  a { text-decoration:none; color:inherit; }
+  h1,h2,h3,h4 { font-family:'Source Serif 4', Georgia, serif; font-weight:700; color:#17222F; }
+  .container { max-width:1180px; margin:0 auto; padding:0 28px; }
+  .wrap { width:100%; }
+
+  /* HEADER */
+  header { background:#FFFFFF; border-bottom:1px solid #D5D5D5; position:relative; z-index:10; }
+  header .container { display:flex; align-items:center; justify-content:space-between; padding:20px 28px; }
+  .logo { font-family:'Source Serif 4', serif; font-size:22px; font-weight:700; color:#17222F; }
+  .logo .mark { color:#ED5A00; }
+  nav ul { display:flex; gap:30px; list-style:none; font-size:14px; font-weight:600; }
+  nav a:hover { color:#ED5A00; }
+  .btn-cta { background:#17222F; color:#FFFFFF; padding:11px 22px; border-radius:2px; font-weight:600; font-size:13.5px; letter-spacing:0.3px; }
+
+  /* PAGE HERO (internal pages) */
+  .page-hero { background:#17222F; color:#FFFFFF; padding:70px 0 60px; }
+  .page-hero h1 { color:#FFFFFF; font-size:38px; margin-bottom:14px; }
+  .page-hero .lead { color:#C4CCD6; font-size:16px; max-width:540px; }
+
+  /* HERO */
+  .hero { background:#17222F; color:#FFFFFF; padding:70px 0 0; overflow:hidden; }
+  .hero .container { display:grid; grid-template-columns:1.1fr 0.9fr; gap:40px; align-items:center; }
+  .hero-eyebrow { color:#ED5A00; font-weight:600; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:18px; }
+  .hero h1 { font-size:42px; line-height:1.18; color:#FFFFFF; margin-bottom:20px; }
+  .hero h1 .accent { color:#ED5A00; }
+  .hero p.lead { font-size:16.5px; color:#C4CCD6; max-width:460px; margin-bottom:34px; }
+  .hero-cta { display:flex; gap:14px; margin-bottom:50px; }
+  .btn-whats { background:#ED5A00; color:#FFFFFF; padding:14px 24px; border-radius:2px; font-weight:600; font-size:14.5px; display:inline-flex; align-items:center; gap:8px; }
+  .btn-line { border:1px solid #3A4856; color:#FFFFFF; padding:13px 22px; border-radius:2px; font-weight:600; font-size:14.5px; }
+
+  /* SPT PROFILE GRAPHIC - signature element */
+  .spt-profile { position:relative; display:flex; justify-content:center; align-items:flex-end; height:420px; }
+  .spt-col { width:120px; border-left:1px solid #3A4856; border-right:1px solid #3A4856; height:100%; position:relative; display:flex; flex-direction:column; }
+  .drill-rod { position:absolute; top:0; left:50%; width:2px; height:0%; background:#ED5A00; transform:translateX(-50%); z-index:2; transition:height 0.25s linear; }
+  .drill-rod::after { content:''; position:absolute; bottom:-4px; left:50%; width:10px; height:10px; background:#ED5A00; border-radius:50%; transform:translateX(-50%); }
+  .spt-layer { border-bottom:1px solid #3A4856; display:flex; align-items:center; justify-content:center; font-size:11px; color:#C4CCD6; position:relative; opacity:0; transition:opacity 0.4s ease; }
+  .spt-layer.revealed { opacity:1; }
+  .spt-layer .layer-text { opacity:0; transition:opacity 0.3s ease 0.1s; }
+  .spt-layer.revealed .layer-text { opacity:1; }
+  .spt-layer .nspt { position:absolute; right:-58px; font-size:12px; color:#ED5A00; font-weight:600; white-space:nowrap; opacity:0; transition:opacity 0.3s ease 0.15s; }
+  .spt-layer.revealed .nspt { opacity:1; }
+  .spt-layer .depth { position:absolute; left:-46px; font-size:11px; color:#7C8A98; opacity:0; transition:opacity 0.3s ease 0.05s; }
+  .spt-layer.revealed .depth { opacity:1; }
+  .spt-label { position:absolute; top:-32px; left:50%; transform:translateX(-50%); font-size:12px; color:#ED5A00; font-weight:600; letter-spacing:0.5px; white-space:nowrap; }
+
+  /* STATS */
+  .stats-bar { background:#ED5A00; }
+  .stats-bar .container { display:grid; grid-template-columns:repeat(4,1fr); padding:30px 28px; }
+  .stat { text-align:center; border-right:1px solid rgba(255,255,255,0.25); }
+  .stat:last-child { border-right:none; }
+  .stat .num { font-family:'Source Serif 4', serif; font-size:30px; font-weight:700; color:#FFFFFF; }
+  .stat .label { font-size:12px; color:#FFE3D0; text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; font-weight:600; }
+
+  /* SECTION HEAD */
+  .section-head { max-width:560px; margin-bottom:46px; }
+  .section-head .eyebrow { color:#ED5A00; font-weight:600; font-size:12.5px; letter-spacing:1.2px; text-transform:uppercase; }
+  .section-head h2 { font-size:30px; margin-top:8px; }
+  .section-head.center { margin-left:auto; margin-right:auto; text-align:center; }
+
+  /* SERVICES TEASER (home) */
+  .services-teaser { padding:90px 0; background:#FFFFFF; text-align:center; }
+  .teaser-text { max-width:620px; margin:0 auto 34px; color:#46535F; font-size:15px; }
+  .teaser-cta { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+  .btn-line-dark { border:1px solid #17222F; color:#17222F; padding:13px 24px; border-radius:2px; font-weight:600; font-size:14px; }
+  .btn-line-dark:hover { background:#17222F; color:#FFFFFF; }
+
+  /* SERVICES */
+  .services { padding:90px 0; background:#FFFFFF; }
+  .svc-group { margin-bottom:50px; }
+  .svc-group-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#7C8A98; border-bottom:1px solid #D5D5D5; padding-bottom:12px; margin-bottom:24px; }
+  .svc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid #D5D5D5; }
+  .svc-grid-2 { grid-template-columns:repeat(2,1fr); }
+  .svc-grid-1 { grid-template-columns:1fr; }
+  .svc-list { margin-top:14px; padding-left:18px; }
+  .svc-list li { font-size:13px; color:#46535F; margin-bottom:6px; }
+  .svc-card { padding:28px; border-right:1px solid #D5D5D5; border-bottom:1px solid #D5D5D5; opacity:0; transition:opacity 0.7s ease, transform 0.7s ease; }
+  .svc-card.from-left { transform:translateX(-50px); }
+  .svc-card.from-right { transform:translateX(50px); }
+  .svc-card.from-bottom { transform:translateY(40px); }
+  .svc-card.in-view { opacity:1; transform:translate(0,0); }
+  .svc-card:nth-child(3n) { border-right:none; }
+  .svc-grid-2 .svc-card:nth-child(2n) { border-right:none; }
+  .svc-grid-2 .svc-card:nth-child(3n) { border-right:1px solid #D5D5D5; }
+  .svc-grid-1 .svc-card { border-right:none; }
+  .svc-card h3 { font-size:16.5px; margin-bottom:8px; }
+  .svc-card p { font-size:13.5px; color:#46535F; }
+
+  /* PROJECTS */
+  .projects { background:#E6E6E6; padding:90px 0; }
+  .project-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .project-card { background:#FFFFFF; border:1px solid #D5D5D5; }
+  .project-card .thumb { aspect-ratio:4/3; background:#17222F; display:flex; align-items:center; justify-content:center; color:#7C8A98; font-size:12.5px; padding:16px; text-align:center; }
+  .project-card .info { padding:20px 22px; }
+  .project-card .tag { font-size:11px; color:#ED5A00; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+  .project-card h4 { font-size:16px; margin-top:6px; margin-bottom:6px; }
+  .project-card p { font-size:12.5px; color:#7C8A98; }
+
+  /* PARTNERS */
+  .partners { padding:70px 0; text-align:center; background:#FFFFFF; }
+  .partner-row { display:flex; gap:0; justify-content:center; flex-wrap:wrap; margin-top:34px; border-top:1px solid #D5D5D5; }
+  .partner-row span { padding:18px 26px; font-weight:700; font-size:13px; letter-spacing:0.5px; color:#7C8A98; border-right:1px solid #D5D5D5; border-bottom:1px solid #D5D5D5; }
+
+  /* FINAL CTA (home) */
+  .final-cta { background:#17222F; color:#FFFFFF; padding:90px 0; text-align:center; }
+  .final-cta h2 { color:#FFFFFF; font-size:30px; margin-bottom:12px; }
+  .final-cta p { color:#C4CCD6; margin-bottom:32px; font-size:15px; }
+
+  /* CONTACT */
+  .contact { background:#17222F; color:#FFFFFF; padding:90px 0; }
+  .contact .section-head .eyebrow { color:#ED5A00; }
+  .contact .section-head h2 { color:#FFFFFF; }
+  .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:60px; }
+  .contact-info p.lead { color:#C4CCD6; margin-bottom:30px; font-size:15px; }
+  .c-item { display:flex; gap:14px; margin-bottom:20px; }
+  .c-item .ic { width:18px; color:#ED5A00; font-weight:700; flex-shrink:0; padding-top:2px; }
+  .c-item div { font-size:14px; color:#C4CCD6; }
+  .contact-form input, .contact-form textarea { width:100%; background:transparent; border:none; border-bottom:1px solid #3A4856; color:#FFFFFF; padding:12px 2px; margin-bottom:18px; font-size:14px; font-family:inherit; }
+  .contact-form input::placeholder, .contact-form textarea::placeholder { color:#7C8A98; }
+  .contact-form button { background:#ED5A00; color:#FFFFFF; padding:14px 28px; border:none; font-weight:600; font-size:14.5px; cursor:pointer; margin-top:8px; }
+
+  /* MAP */
+  .map-section { padding:0 0 90px; background:#E6E6E6; }
+  .map-frame { aspect-ratio:16/5; background:#D5D5D5; display:flex; align-items:center; justify-content:center; color:#7C8A98; font-size:13px; border:1px solid #C9C9C9; }
+
+  footer { background:#0F161E; color:#7C8A98; padding:30px 0; font-size:12.5px; }
+  .footer-grid { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .footer-nav { display:flex; gap:20px; flex-wrap:wrap; }
+  .footer-nav a:hover { color:#ED5A00; }
+
+  @media (max-width: 880px) {
+    .hero .container, .contact-grid { grid-template-columns:1fr; }
+    .stats-bar .container, .svc-grid, .project-grid { grid-template-columns:repeat(2,1fr); }
+    .spt-profile { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <a href="index.html" class="logo">PRO<span class="mark">VERGA</span></a>
+    <nav><ul>
+      <li><a href="index.html">Início</a></li>
+      <li><a href="quem-somos.html">Quem Somos</a></li>
+      <li><a href="servicos-projetos.html#servicos">Serviços</a></li>
+      <li><a href="servicos-projetos.html#projetos">Projetos</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contato.html">Contato</a></li>
+    </ul></nav>
+    <a href="https://api.whatsapp.com/send?phone=5544998815408" class="btn-cta">Orçamento</a>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-eyebrow">Contato</div>
+    <h1>Vamos falar sobre o seu projeto</h1>
+    <p class="lead">Solicite um orçamento ou tire suas dúvidas técnicas. Respondemos rápido pelo WhatsApp.</p>
+  </div>
+</section>
+
+<section class="contact">
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <div class="section-head"><div class="eyebrow">Fale com a equipe</div><h2>Informações de contato</h2></div>
+        <p class="lead">Para orçamentos, dúvidas técnicas ou visitas em campo, estamos à disposição pelos canais abaixo.</p>
+        <div class="c-item"><div class="ic">&#8594;</div><div><strong>Endereço</strong><br>Av. Capitão Indio Bandeira, 1400, 5&ordm; Andar, Sala 508<br>Campo Mour&atilde;o, PR, 87300-005</div></div>
+        <div class="c-item"><div class="ic">&#8594;</div><div><strong>Telefone / WhatsApp</strong><br>(44) 99881-5408 &middot; (44) 99987-1552</div></div>
+        <div class="c-item"><div class="ic">&#8594;</div><div><strong>E-mail</strong><br>contato@proverga.com.br</div></div>
+        <div class="c-item"><div class="ic">&#8594;</div><div><strong>Hor&aacute;rio de atendimento</strong><br>Segunda a sexta, 8h &ndash; 18h</div></div>
+      </div>
+      <div class="contact-form">
+        <input type="text" placeholder="Nome completo">
+        <input type="text" placeholder="Telefone / WhatsApp">
+        <input type="email" placeholder="E-mail">
+        <textarea rows="4" placeholder="Descreva sua necessidade..."></textarea>
+        <button>Enviar solicita&ccedil;&atilde;o</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="map-section">
+  <div class="container">
+    <div class="map-frame">[ Mapa: Av. Capit&atilde;o Indio Bandeira, 1400, Campo Mour&atilde;o, PR ]</div>
+  </div>
+</section>
+
+<footer>
+  <div class="container footer-grid">
+    <div>© 2026 ProVerga Engenharia Ltda. Todos os direitos reservados.</div>
+    <nav class="footer-nav">
+      <a href="index.html">Início</a>
+      <a href="quem-somos.html">Quem Somos</a>
+      <a href="servicos-projetos.html#servicos">Serviços</a>
+      <a href="servicos-projetos.html#projetos">Projetos</a>
+      <a href="blog.html">Blog</a>
+      <a href="contato.html">Contato</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function() {
+  function animateCount(el) {
+    var target = parseFloat(el.getAttribute('data-target'));
+    var suffix = el.getAttribute('data-suffix') || '';
+    var thousands = el.getAttribute('data-thousands') === '1';
+    var duration = 1400;
+    var start = null;
+
+    function step(timestamp) {
+      if (!start) start = timestamp;
+      var progress = Math.min((timestamp - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var current = Math.round(eased * target);
+      var display = thousands ? current.toLocaleString('pt-BR') : String(current);
+      el.textContent = display + suffix;
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        var finalDisplay = thousands ? target.toLocaleString('pt-BR') : String(target);
+        el.textContent = finalDisplay + suffix;
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function runDrillSequence() {
+    var rod = document.getElementById('drillRod');
+    var layers = Array.from(document.querySelectorAll('.spt-layer'));
+    if (!rod || layers.length === 0) {
+      var statObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting && !entry.target.dataset.animated) {
+            entry.target.dataset.animated = "1";
+            animateCount(entry.target);
+          }
+        });
+      }, { threshold: 0.4 });
+      document.querySelectorAll('.num[data-target]').forEach(function(el) {
+        statObserver.observe(el);
+      });
+      return;
+    }
+
+    var cumulative = 0;
+    var stepDelay = 275;
+
+    layers.forEach(function(layer, i) {
+      var pct = parseFloat(layer.getAttribute('data-depth-pct')) || 0;
+      cumulative += pct;
+      var atDepth = cumulative;
+      setTimeout(function() {
+        rod.style.height = atDepth + '%';
+        layer.classList.add('revealed');
+      }, i * stepDelay);
+    });
+
+    var totalDrillTime = layers.length * stepDelay + 500;
+    setTimeout(function() {
+      document.querySelectorAll('.num[data-target]').forEach(animateCount);
+    }, totalDrillTime);
+  }
+
+  var drillStarted = false;
+  function startDrillOnce() {
+    if (drillStarted) return;
+    drillStarted = true;
+    setTimeout(runDrillSequence, 400);
+  }
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    startDrillOnce();
+  } else {
+    window.addEventListener('DOMContentLoaded', startDrillOnce);
+  }
+
+  var cardObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var siblings = Array.from(entry.target.parentElement.children);
+        var index = siblings.indexOf(entry.target);
+        var delay = index * 120;
+        setTimeout(function() {
+          entry.target.classList.add('in-view');
+        }, delay);
+        cardObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.svc-card').forEach(function(card) {
+    cardObserver.observe(card);
+  });
+})();
+</script>
+
+</body>
+</html>
