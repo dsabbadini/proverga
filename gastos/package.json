@@ -1,0 +1,13 @@
+{
+  "name": "meu-gasto",
+  "version": "0.1.0",
+  "description": "Assistente de gastos: captura notificações push dos bancos, categoriza e mostra um dashboard.",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --no-warnings src/server.js",
+    "demo": "node --no-warnings src/demo.js",
+    "test": "node --no-warnings --test test/*.test.js"
+  }
+}

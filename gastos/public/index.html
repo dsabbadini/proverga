@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meu Gasto</title>
+  <meta name="theme-color" content="#1a1a19">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Tela de acesso -->
+  <section id="login" class="login" hidden>
+    <form id="form-login" class="card login-card">
+      <h1>Meu Gasto</h1>
+      <p class="muted">Digite o token de acesso configurado no servidor (APP_TOKEN).</p>
+      <input id="token" type="password" autocomplete="current-password" placeholder="Token de acesso" required>
+      <button type="submit">Entrar</button>
+      <p id="erro-login" class="erro" role="alert"></p>
+    </form>
+  </section>
+
+  <main id="app" hidden>
+    <header class="topo">
+      <h1>Meu Gasto</h1>
+      <div class="controles">
+        <button class="icone" id="mes-ant" aria-label="Mês anterior">‹</button>
+        <input type="month" id="mes" aria-label="Mês">
+        <button class="icone" id="mes-prox" aria-label="Próximo mês">›</button>
+        <button class="icone" id="sair">Sair</button>
+      </div>
+    </header>
+
+    <div id="alerta-pendentes" class="alerta" hidden></div>
+
+    <form id="form-rapido" class="rapido">
+      <input id="lancamento" placeholder="Lançar gasto, ex.: padaria 18,50" autocomplete="off">
+      <button type="submit">Lançar</button>
+    </form>
+    <p id="msg-rapido" class="muted pequeno" role="status"></p>
+
+    <section class="kpis" id="kpis"></section>
+
+    <div class="grade">
+      <section class="card">
+        <h2>Onde você gasta</h2>
+        <p class="muted pequeno">Despesas do mês por categoria. Clique para filtrar as transações.</p>
+        <div id="categorias" class="barras-h"></div>
+      </section>
+
+      <section class="card">
+        <h2>Gastos nos últimos 6 meses</h2>
+        <div id="evolucao" class="barras-v" role="img"></div>
+        <h2 class="mt">Maiores estabelecimentos</h2>
+        <ol id="top" class="lista-top"></ol>
+        <h2 class="mt">Por conta / cartão</h2>
+        <ul id="contas" class="lista-top"></ul>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="titulo-linha">
+        <h2>Transações <span id="filtro-ativo" class="chip" hidden></span></h2>
+        <input id="busca" type="search" placeholder="Buscar" aria-label="Buscar transações">
+      </div>
+      <p class="muted pequeno">Mudou a categoria? O app aprende e aplica a todas as compras do mesmo estabelecimento.</p>
+      <div class="tabela-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Estabelecimento</th><th>Categoria</th><th class="num">Valor</th><th></th></tr></thead>
+          <tbody id="transacoes"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+  <script src="app.js" type="module"></script>
+</body>
+</html>
