@@ -51,3 +51,13 @@ test('fluxo completo: notificação, duplicata, aprendizado e resumo', async () 
 test('lançamento inválido devolve 400', async () => {
   assert.equal((await chamar('/api/transacoes', { metodo: 'POST', corpo: { texto: 'sem número' } })).status, 400);
 });
+
+test('mesma compra pela Carteira do Google e pelo app do banco conta uma vez', async () => {
+  const gw = await chamar('/api/notificacoes', { metodo: 'POST', corpo: { app: 'com.google.android.apps.walletnfcrel', title: 'MP *LANCHONETEMAY', text: 'R$ 25,00 com Nubank Mastercard Platinum ••9975' } });
+  assert.equal(gw.status, 201);
+  const nu = await chamar('/api/notificacoes', { metodo: 'POST', corpo: { app: 'com.nu.production', title: 'Compra aprovada', text: 'Compra de R$ 25,00 APROVADA em MP *LANCHONETEMAY para o cartão com final 9975.' } });
+  assert.equal(nu.corpo.status, 'duplicada');
+  // Outro cartão, mesmo valor: é outra compra.
+  const outra = await chamar('/api/notificacoes', { metodo: 'POST', corpo: { app: 'com.google.android.apps.walletnfcrel', title: 'MP *LANCHONETEMAY', text: 'R$ 25,00 com Nubank Mastercard Gold ••6436' } });
+  assert.equal(outra.status, 201);
+});

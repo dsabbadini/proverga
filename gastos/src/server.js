@@ -91,7 +91,14 @@ export function criarApp({ repo, token }) {
       }
       const r = parseNotificacao(n);
       let transacao = null;
-      if (r.status === 'ok') transacao = repo.inserirTransacao(r.transacao);
+      if (r.status === 'ok') {
+        const existente = repo.buscarMesmaCompra(r.transacao);
+        if (existente) {
+          repo.registrarNotificacao(n, hash, 'duplicada', `mesma compra da transação ${existente.id}`, existente.id);
+          return json(res, 200, { status: 'duplicada', transacao: existente });
+        }
+        transacao = repo.inserirTransacao(r.transacao);
+      }
       repo.registrarNotificacao(n, hash, r.status, r.motivo, transacao?.id);
       return json(res, r.status === 'ok' ? 201 : 200, { status: r.status, motivo: r.motivo, transacao });
     }

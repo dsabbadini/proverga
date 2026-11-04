@@ -33,8 +33,19 @@ gratuita comporta esta macro.
 3. Conceda ao MacroDroid **Acesso a notificações** e desative a **otimização de bateria**
    para ele (Configurações → Apps → MacroDroid → Bateria → Sem restrições). Sem isso o
    Android encerra o app em segundo plano e notificações se perdem.
+   **Samsung (One UI)**: além disso, em Configurações → Cuidados com o dispositivo →
+   Bateria → Limites de uso em segundo plano, adicione o MacroDroid em **Apps que nunca
+   entram em suspensão**. A Samsung é a fabricante que mais encerra apps em segundo plano.
 4. Teste: faça uma compra pequena ou use o *Testar ação* do MacroDroid. A transação deve
    aparecer no dashboard em segundos.
+
+### Carteira do Google + app do banco
+
+Marque **os dois** no gatilho. A Carteira do Google avisa pagamentos por aproximação com o
+celular (formato `MP *LOJA` / `R$ 25,00 com Nubank Mastercard Platinum ••9975`), e o app
+do banco avisa as compras com cartão físico e online. Quando os dois avisam a mesma
+compra, o servidor reconhece (mesmo valor e mesmo final de cartão em até 10 minutos) e
+conta uma vez só.
 
 **Alternativa**: Tasker + plugin AutoNotification, com a mesma requisição HTTP.
 

@@ -121,3 +121,20 @@ test('intervalos de mês', () => {
   assert.deepEqual(mesesAnteriores('2026-02', 3), ['2025-12', '2026-01', '2026-02']);
   assert.equal(paraHorarioBrasilia('2026-12-01T01:30:00Z'), '2026-11-30T22:30:00');
 });
+
+// Textos reais da Carteira do Google (Samsung), enviados pelo usuário.
+const CARTEIRA = 'com.google.android.apps.walletnfcrel';
+test('Carteira do Google: compra aprovada', () => {
+  const r = parseNotificacao({ app: CARTEIRA, title: 'MP *LANCHONETEMAY', text: 'R$ 25,00 com Nubank Mastercard Platinum ••9975', ts: REF });
+  assert.equal(r.status, 'ok', JSON.stringify(r));
+  assert.equal(r.transacao.valor, 25);
+  assert.equal(r.transacao.estabelecimento, 'MP *LANCHONETEMAY');
+  assert.equal(r.transacao.conta, 'Nubank Mastercard Platinum');
+  assert.equal(r.transacao.cartao_final, '9975');
+  assert.equal(categorizar(r.transacao.estabelecimento), 'refeicoes');
+  assert.equal(chaveEstabelecimento(r.transacao.estabelecimento), 'LANCHONETEMAY');
+});
+test('Carteira do Google: recusada e comprovante são ignorados', () => {
+  assert.equal(parseNotificacao({ app: CARTEIRA, title: 'MP *LANCHONETEMAY', text: 'RECUSADA: R$ 25,00 com Nubank Mastercard Gold ••6436' }).status, 'ignorada');
+  assert.equal(parseNotificacao({ app: CARTEIRA, title: 'Preparando seu comprovante', text: 'Estamos adicionando o local ao seu comprovante' }).status, 'ignorada');
+});

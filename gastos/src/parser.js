@@ -29,7 +29,7 @@ export const APPS = {
 };
 
 const RE_VALOR = /R\$\s*(-?\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|-?\d+(?:,\d{1,2})?)/i;
-const RE_FINAL = /final\s*(?:do cart[aã]o\s*)?(\d{4})/i;
+const RE_FINAL = /(?:final\s*(?:do cart[aã]o\s*)?|[•·]{1,4}\s*)(\d{4})/i;
 const RE_DATA = /\b(\d{2})\/(\d{2})(?:\/(\d{2,4}))?\b/;
 const RE_HORA = /\b(\d{1,2})[:h](\d{2})\b/;
 
@@ -120,6 +120,28 @@ function extrairData(t, referencia) {
  * @param {{app?: string, title?: string, text?: string, ts?: string|number}} n
  * @returns {{status: 'ok'|'ignorada'|'nao_reconhecida', motivo?: string, transacao?: object}}
  */
+// Carteira do Google (Google Wallet): o título é o estabelecimento e o texto traz valor e cartão.
+//   título: "MP *LANCHONETEMAY"   texto: "R$ 25,00 com Nubank Mastercard Platinum ••9975"
+const RE_CARTEIRA = /^\s*R\$\s*[\d.,]+\s+com\s+(.+?)\s*(?:[•·*.]{1,4}\s*)(\d{4})\s*$/i;
+
+function parseCarteira({ app, title, text }, ts) {
+  const m = String(text || '').match(RE_CARTEIRA);
+  if (!m || !title?.trim()) return null;
+  return {
+    status: 'ok',
+    transacao: {
+      data: extrairData('', ts),
+      valor: parseValor(text),
+      natureza: 'despesa',
+      tipo: 'credito',
+      estabelecimento: title.trim(),
+      conta: m[1].trim() || APPS[app] || app || null, // ex.: "Nubank Mastercard Platinum"
+      cartao_final: m[2],
+      origem: 'notificacao',
+    },
+  };
+}
+
 export function parseNotificacao({ app = '', title = '', text = '', ts } = {}) {
   const t = `${title || ''}\n${text || ''}`.trim();
   if (!t) return { status: 'nao_reconhecida', motivo: 'vazia' };
@@ -127,6 +149,9 @@ export function parseNotificacao({ app = '', title = '', text = '', ts } = {}) {
   const valor = parseValor(t);
   if (valor == null || valor === 0) return { status: 'ignorada', motivo: 'sem valor' };
   for (const re of IGNORAR) if (re.test(t)) return { status: 'ignorada', motivo: `filtro: ${re.source}` };
+
+  const carteira = parseCarteira({ app, title, text }, ts ? new Date(Number(ts) || ts) : undefined);
+  if (carteira) return carteira;
 
   const receita = RECEITA.some((re) => re.test(t));
   const tipo = detectarTipo(t);

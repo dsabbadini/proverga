@@ -86,6 +86,27 @@ class Repositorio {
     return createHash('sha1').update(`${app}|${title}|${text}`).digest('hex');
   }
 
+  /**
+   * A mesma compra costuma gerar duas notificações (Carteira do Google e app do banco).
+   * Considera repetida a despesa de mesmo valor, mesmo final de cartão (ou mesmo
+   * estabelecimento, se não houver cartão) registrada a até 10 minutos de distância.
+   */
+  buscarMesmaCompra(tx) {
+    if (tx.natureza === 'receita') return null;
+    const data = paraHorarioBrasilia(tx.data);
+    const t = new Date(`${data}Z`).getTime();
+    const ini = new Date(t - 10 * 60e3).toISOString().slice(0, 19);
+    const fim = new Date(t + 10 * 60e3).toISOString().slice(0, 19);
+    const candidatas = this.db
+      .prepare(`SELECT * FROM transacoes WHERE origem = 'notificacao' AND natureza = 'despesa'
+                AND ABS(valor - ?) < 0.005 AND data BETWEEN ? AND ?`)
+      .all(tx.valor, ini, fim);
+    const chave = chaveEstabelecimento(tx.estabelecimento);
+    return candidatas.find((c) =>
+      tx.cartao_final && c.cartao_final ? c.cartao_final === tx.cartao_final : chaveEstabelecimento(c.estabelecimento) === chave,
+    ) || null;
+  }
+
   registrarNotificacao({ app, title, text }, hash, status, motivo, transacaoId = null) {
     this.db
       .prepare('INSERT INTO notificacoes (app, titulo, texto, hash, status, motivo, transacao_id) VALUES (?,?,?,?,?,?,?)')
