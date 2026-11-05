@@ -12,7 +12,11 @@ function salvarToken(t) {
   try { t ? localStorage.setItem('meugasto.token', t) : localStorage.removeItem('meugasto.token'); } catch {}
 }
 
+// No app Android, as rotas rodam localmente (nucleo/api-local.js) em vez de num servidor.
+let local = null;
+
 async function api(caminho, opcoes = {}) {
+  if (local) return local.chamar(caminho, opcoes);
   const r = await fetch(caminho, {
     ...opcoes,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${estado.token}`, ...(opcoes.headers || {}) },
@@ -225,9 +229,50 @@ $('#form-login').addEventListener('submit', async (e) => {
   try { await entrar($('#token').value.trim()); } catch (err) { $('#erro-login').textContent = err.message; }
 });
 
-// Permite abrir já autenticado via ?token=... (útil no atalho da tela inicial do celular)
-const tokenUrl = new URLSearchParams(location.search).get('token');
-if (tokenUrl) history.replaceState(null, '', location.pathname);
-const inicial = tokenUrl || lerToken();
-if (inicial) entrar(inicial).catch(() => { $('#login').hidden = false; });
-else $('#login').hidden = false;
+// ---------- Modo app Android ----------
+function avisoPermissao(nativo) {
+  const el = $('#aviso-permissao');
+  el.hidden = nativo.temPermissao();
+}
+
+async function iniciarApp(nativo) {
+  ({ criarApiLocal: estado.criarApiLocal } = await import('./nucleo/api-local.js'));
+  local = estado.criarApiLocal(nativo);
+  document.body.classList.add('modo-app');
+  $('#sair').hidden = true;
+  $('#acoes-app').hidden = false;
+  $('#btn-permissao').addEventListener('click', () => nativo.abrirPermissao());
+  $('#btn-exportar').addEventListener('click', () => local.exportar());
+  $('#arquivo-importar').addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    if (!f || !confirm('Substituir todos os dados deste aparelho pelo backup?')) return;
+    try { local.importar(await f.text()); await carregar(); $('#msg-rapido').textContent = 'Backup restaurado.'; }
+    catch (err) { $('#msg-rapido').textContent = err.message; }
+    e.target.value = '';
+  });
+  const atualizar = async () => {
+    avisoPermissao(nativo);
+    const r = local.processarFila();
+    if (r.novas) $('#msg-rapido').textContent = `${r.novas} nova(s) compra(s) capturada(s) das notificações.`;
+    await carregar();
+  };
+  // Chamado pelo lado nativo quando chega notificação com o app aberto.
+  window.meuGastoNovaNotificacao = () => atualizar().catch(console.error);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) atualizar().catch(console.error); });
+  estado.categorias = await api('/api/categorias');
+  estado.nomes = Object.fromEntries(estado.categorias.map((c) => [c.id, c.nome]));
+  $('#app').hidden = false;
+  estado.mes = mesAtual(); $('#mes').value = estado.mes;
+  await atualizar();
+}
+
+if (window.MeuGastoNativo) {
+  iniciarApp(window.MeuGastoNativo).catch((e) => { document.body.textContent = `Erro ao iniciar: ${e.message}`; });
+} else {
+  // Permite abrir já autenticado via ?token=... (útil no atalho da tela inicial do celular)
+  const tokenUrl = new URLSearchParams(location.search).get('token');
+  if (tokenUrl) history.replaceState(null, '', location.pathname);
+  const inicial = tokenUrl || lerToken();
+  if (inicial) entrar(inicial).catch(() => { $('#login').hidden = false; });
+  else $('#login').hidden = false;
+}

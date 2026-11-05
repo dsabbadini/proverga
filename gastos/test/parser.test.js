@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseNotificacao, parseLancamentoManual, parseValor } from '../src/parser.js';
-import { categorizar, chaveEstabelecimento } from '../src/categorias.js';
+import { parseNotificacao, parseLancamentoManual, parseValor } from '../nucleo/parser.js';
+import { categorizar, chaveEstabelecimento } from '../nucleo/categorias.js';
 import { paraHorarioBrasilia, intervaloDoMes, mesesAnteriores } from '../src/db.js';
 
 const REF = new Date('2026-11-04T12:00:00-03:00').getTime();

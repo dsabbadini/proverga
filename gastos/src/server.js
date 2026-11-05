@@ -4,12 +4,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, extname, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { timingSafeEqual } from 'node:crypto';
-import { abrirBanco, intervaloDoMes, paraHorarioBrasilia, Repositorio } from './db.js';
-import { parseNotificacao, parseLancamentoManual } from './parser.js';
-import { CATEGORIAS, CATEGORIA_POR_ID } from './categorias.js';
+import { abrirBanco } from './db.js';
+import { tratar } from '../nucleo/rotas.js';
 
 const RAIZ = dirname(dirname(fileURLToPath(import.meta.url)));
 const PUBLICO = join(RAIZ, 'public');
+const NUCLEO = join(RAIZ, 'nucleo');
 
 // Carrega .env simples (KEY=VALUE) sem dependências.
 const arquivoEnv = join(RAIZ, '.env');
@@ -65,91 +65,19 @@ export function criarApp({ repo, token }) {
       req.on('error', reject);
     });
 
-  const mesAtual = () => paraHorarioBrasilia().slice(0, 7);
-  const mesValido = (m) => (/^\d{4}-(0[1-9]|1[0-2])$/.test(m || '') ? m : mesAtual());
-
   async function api(req, res, url) {
-    const { pathname } = url;
-    const metodo = req.method;
-
-    if (pathname === '/api/saude') return json(res, 200, { ok: true });
+    if (url.pathname === '/api/saude') return json(res, 200, { ok: true });
     if (!autorizado(req, url)) return json(res, 401, { erro: 'token inválido' });
-
-    // Recebe notificação push encaminhada pelo celular (MacroDroid/Tasker/app próprio).
-    if (pathname === '/api/notificacoes' && metodo === 'POST') {
-      const corpo = await lerCorpo(req);
-      const n = {
-        app: corpo.app || corpo.package || corpo.app_package || url.searchParams.get('app') || '',
-        title: corpo.title || corpo.titulo || '',
-        text: corpo.text || corpo.texto || corpo.message || '',
-        ts: corpo.ts || corpo.timestamp,
-      };
-      const hash = Repositorio.hashNotificacao(n);
-      if (repo.ehDuplicada(hash)) {
-        repo.registrarNotificacao(n, hash, 'duplicada');
-        return json(res, 200, { status: 'duplicada' });
-      }
-      const r = parseNotificacao(n);
-      let transacao = null;
-      if (r.status === 'ok') {
-        const existente = repo.buscarMesmaCompra(r.transacao);
-        if (existente) {
-          repo.registrarNotificacao(n, hash, 'duplicada', `mesma compra da transação ${existente.id}`, existente.id);
-          return json(res, 200, { status: 'duplicada', transacao: existente });
-        }
-        transacao = repo.inserirTransacao(r.transacao);
-      }
-      repo.registrarNotificacao(n, hash, r.status, r.motivo, transacao?.id);
-      return json(res, r.status === 'ok' ? 201 : 200, { status: r.status, motivo: r.motivo, transacao });
-    }
-
-    if (pathname === '/api/categorias' && metodo === 'GET') {
-      return json(res, 200, CATEGORIAS.map(({ id, nome, cor }) => ({ id, nome, cor })));
-    }
-
-    if (pathname === '/api/transacoes' && metodo === 'GET') {
-      return json(res, 200, repo.listarTransacoes(intervaloDoMes(mesValido(url.searchParams.get('mes')))));
-    }
-
-    // Lançamento manual: { texto: "padaria 18,50" } ou campos estruturados.
-    if (pathname === '/api/transacoes' && metodo === 'POST') {
-      const corpo = await lerCorpo(req);
-      let tx = corpo.texto ? parseLancamentoManual(corpo.texto) : null;
-      if (!tx && corpo.valor && corpo.estabelecimento) {
-        tx = { data: corpo.data || new Date().toISOString(), valor: Math.abs(Number(corpo.valor)), natureza: corpo.natureza === 'receita' ? 'receita' : 'despesa', tipo: corpo.tipo || 'outro', estabelecimento: String(corpo.estabelecimento).slice(0, 120), origem: 'manual' };
-      }
-      if (!tx || !Number.isFinite(tx.valor) || tx.valor <= 0) return json(res, 400, { erro: 'Não entendi. Exemplo: "padaria 18,50".' });
-      if (corpo.categoria && CATEGORIA_POR_ID[corpo.categoria]) tx.categoria = corpo.categoria;
-      return json(res, 201, repo.inserirTransacao(tx));
-    }
-
-    const m = pathname.match(/^\/api\/transacoes\/(\d+)$/);
-    if (m && metodo === 'PATCH') {
-      const corpo = await lerCorpo(req);
-      if (!CATEGORIA_POR_ID[corpo.categoria]) return json(res, 400, { erro: 'categoria inválida' });
-      const r = repo.alterarCategoria(Number(m[1]), corpo.categoria, corpo.aprender !== false);
-      return r ? json(res, 200, r) : json(res, 404, { erro: 'não encontrada' });
-    }
-    if (m && metodo === 'DELETE') {
-      return repo.removerTransacao(Number(m[1])) ? json(res, 200, { ok: true }) : json(res, 404, { erro: 'não encontrada' });
-    }
-
-    if (pathname === '/api/resumo' && metodo === 'GET') {
-      const mes = mesValido(url.searchParams.get('mes'));
-      return json(res, 200, { mes, ...repo.resumo(intervaloDoMes(mes)), evolucao: repo.evolucao(mes, 6) });
-    }
-
-    if (pathname === '/api/notificacoes/pendentes' && metodo === 'GET') {
-      return json(res, 200, repo.notificacoesPendentes());
-    }
-
-    return json(res, 404, { erro: 'rota não encontrada' });
+    const corpo = ['POST', 'PATCH', 'PUT'].includes(req.method) ? await lerCorpo(req) : {};
+    const r = tratar(repo, { metodo: req.method, caminho: url.pathname, query: url.searchParams, corpo });
+    return json(res, r.status, r.corpo);
   }
 
   async function estatico(req, res, url) {
     const rel = normalize(decodeURIComponent(url.pathname)).replace(/^([/\\])+/, '').replace(/^(\.\.[/\\])+/, '');
-    const caminho = join(PUBLICO, rel || 'index.html');
-    if (!caminho.startsWith(PUBLICO)) return json(res, 403, { erro: 'proibido' });
+    const base = rel.startsWith('nucleo/') ? RAIZ : PUBLICO;
+    const caminho = join(base, rel || 'index.html');
+    if (!caminho.startsWith(PUBLICO) && !caminho.startsWith(NUCLEO + '/')) return json(res, 403, { erro: 'proibido' });
     try {
       const conteudo = await readFile(caminho);
       res.writeHead(200, { 'Content-Type': MIME[extname(caminho)] || 'application/octet-stream' });

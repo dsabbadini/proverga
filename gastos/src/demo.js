@@ -1,7 +1,7 @@
 // Popula um banco de demonstração passando notificações fictícias pelo parser real.
 // Uso: DB_PATH=./data/demo.db npm run demo
 import { abrirBanco } from './db.js';
-import { parseNotificacao } from './parser.js';
+import { parseNotificacao } from '../nucleo/parser.js';
 
 const repo = abrirBanco(process.env.DB_PATH || './data/demo.db');
 

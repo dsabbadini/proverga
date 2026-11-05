@@ -1,33 +1,10 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { createHash } from 'node:crypto';
-import { categorizar, chaveEstabelecimento } from './categorias.js';
+import { categorizar, chaveEstabelecimento } from '../nucleo/categorias.js';
+import { paraHorarioBrasilia, intervaloDoMes, mesesAnteriores, deslocarMinutos, hashNotificacao } from '../nucleo/datas.js';
 
-// Datas são gravadas no horário de Brasília (UTC-3, sem horário de verão desde 2019)
-// como texto "YYYY-MM-DDTHH:MM:SS", para que agrupar por mês use o calendário local.
-const OFFSET_BR_MS = 3 * 60 * 60e3;
-export function paraHorarioBrasilia(dataIso) {
-  const d = dataIso ? new Date(dataIso) : new Date();
-  const ms = Number.isNaN(d.getTime()) ? Date.now() : d.getTime();
-  return new Date(ms - OFFSET_BR_MS).toISOString().slice(0, 19);
-}
-
-/** "2026-11" -> { inicio: "2026-11-01T00:00:00", fim: "2026-12-01T00:00:00" } */
-export function intervaloDoMes(mes) {
-  const [a, m] = mes.split('-').map(Number);
-  const pad = (n) => String(n).padStart(2, '0');
-  const prox = m === 12 ? [a + 1, 1] : [a, m + 1];
-  return { inicio: `${a}-${pad(m)}-01T00:00:00`, fim: `${prox[0]}-${pad(prox[1])}-01T00:00:00` };
-}
-
-export function mesesAnteriores(mes, n) {
-  const [a, m] = mes.split('-').map(Number);
-  return Array.from({ length: n }, (_, i) => {
-    const d = new Date(Date.UTC(a, m - 1 - (n - 1 - i), 1));
-    return d.toISOString().slice(0, 7);
-  });
-}
+export { paraHorarioBrasilia, intervaloDoMes, mesesAnteriores } from '../nucleo/datas.js';
 
 export function abrirBanco(caminho = process.env.DB_PATH || './data/gastos.db') {
   if (caminho !== ':memory:') mkdirSync(dirname(caminho), { recursive: true });
@@ -77,13 +54,15 @@ class Repositorio {
 
   // Mesma notificação repetida em até 10 minutos é tratada como duplicata
   // (o Android costuma reemitir/atualizar a notificação).
-  ehDuplicada(hash) {
-    const limite = new Date(Date.now() - 10 * 60e3).toISOString();
-    return !!this.db.prepare("SELECT 1 FROM notificacoes WHERE hash = ? AND recebida_em >= ? AND status <> 'duplicada' LIMIT 1").get(hash, limite);
+  // `quando` = horário de Brasília da notificação (o app pode processar uma fila atrasada).
+  ehDuplicada(hash, quando = paraHorarioBrasilia()) {
+    return !!this.db
+      .prepare("SELECT 1 FROM notificacoes WHERE hash = ? AND recebida_em BETWEEN ? AND ? AND status <> 'duplicada' LIMIT 1")
+      .get(hash, deslocarMinutos(quando, -10), deslocarMinutos(quando, 10));
   }
 
-  static hashNotificacao({ app = '', title = '', text = '' }) {
-    return createHash('sha1').update(`${app}|${title}|${text}`).digest('hex');
+  static hashNotificacao(n) {
+    return hashNotificacao(n);
   }
 
   /**
@@ -94,9 +73,8 @@ class Repositorio {
   buscarMesmaCompra(tx) {
     if (tx.natureza === 'receita') return null;
     const data = paraHorarioBrasilia(tx.data);
-    const t = new Date(`${data}Z`).getTime();
-    const ini = new Date(t - 10 * 60e3).toISOString().slice(0, 19);
-    const fim = new Date(t + 10 * 60e3).toISOString().slice(0, 19);
+    const ini = deslocarMinutos(data, -10);
+    const fim = deslocarMinutos(data, 10);
     const candidatas = this.db
       .prepare(`SELECT * FROM transacoes WHERE origem = 'notificacao' AND natureza = 'despesa'
                 AND ABS(valor - ?) < 0.005 AND data BETWEEN ? AND ?`)
@@ -107,10 +85,10 @@ class Repositorio {
     ) || null;
   }
 
-  registrarNotificacao({ app, title, text }, hash, status, motivo, transacaoId = null) {
+  registrarNotificacao({ app, title, text }, hash, status, motivo = null, transacaoId = null, quando = paraHorarioBrasilia()) {
     this.db
-      .prepare('INSERT INTO notificacoes (app, titulo, texto, hash, status, motivo, transacao_id) VALUES (?,?,?,?,?,?,?)')
-      .run(app ?? null, title ?? null, text ?? null, hash, status, motivo ?? null, transacaoId);
+      .prepare('INSERT INTO notificacoes (recebida_em, app, titulo, texto, hash, status, motivo, transacao_id) VALUES (?,?,?,?,?,?,?,?)')
+      .run(quando, app ?? null, title ?? null, text ?? null, hash, status, motivo ?? null, transacaoId);
   }
 
   inserirTransacao(tx) {

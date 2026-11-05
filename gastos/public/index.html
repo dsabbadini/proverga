@@ -32,6 +32,10 @@
       </div>
     </header>
 
+    <div id="aviso-permissao" class="alerta aviso" hidden>
+      <b>Falta liberar o acesso às notificações.</b> Sem isso o app não vê as compras.
+      <button id="btn-permissao" type="button">Liberar acesso</button>
+    </div>
     <div id="alerta-pendentes" class="alerta" hidden></div>
 
     <form id="form-rapido" class="rapido">
@@ -70,6 +74,15 @@
           <thead><tr><th>Data</th><th>Estabelecimento</th><th>Categoria</th><th class="num">Valor</th><th></th></tr></thead>
           <tbody id="transacoes"></tbody>
         </table>
+      </div>
+    </section>
+
+    <section id="acoes-app" class="card" hidden>
+      <h2>Backup</h2>
+      <p class="muted pequeno">Os dados ficam só neste celular. Exporte de vez em quando (ex.: para o Google Drive) para não perder nada se trocar de aparelho.</p>
+      <div class="linha-botoes">
+        <button id="btn-exportar" type="button">Exportar backup</button>
+        <label class="botao-sec">Restaurar backup<input id="arquivo-importar" type="file" accept="application/json,.json" hidden></label>
       </div>
     </section>
   </main>
