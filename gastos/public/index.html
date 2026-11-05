@@ -2,92 +2,135 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Meu Gasto</title>
-  <meta name="theme-color" content="#1a1a19">
+  <meta name="theme-color" content="#5b4fe9">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Tela de acesso -->
+  <!-- Acesso (só no modo servidor) -->
   <section id="login" class="login" hidden>
-    <form id="form-login" class="card login-card">
-      <h1>Meu Gasto</h1>
-      <p class="muted">Digite o token de acesso configurado no servidor (APP_TOKEN).</p>
+    <form id="form-login" class="login-card">
+      <div class="marca"><span class="marca-icone" id="marca-login"></span>Meu Gasto</div>
+      <h1>Entenda para onde vai seu dinheiro</h1>
+      <p class="muted">Digite o token de acesso configurado no servidor.</p>
       <input id="token" type="password" autocomplete="current-password" placeholder="Token de acesso" required>
-      <button type="submit">Entrar</button>
+      <button type="submit" class="btn-primario">Entrar</button>
       <p id="erro-login" class="erro" role="alert"></p>
     </form>
   </section>
 
-  <main id="app" hidden>
-    <header class="topo">
-      <h1>Meu Gasto</h1>
-      <div class="controles">
-        <button class="icone" id="mes-ant" aria-label="Mês anterior">‹</button>
-        <input type="month" id="mes" aria-label="Mês">
-        <button class="icone" id="mes-prox" aria-label="Próximo mês">›</button>
-        <button class="icone" id="sair">Sair</button>
-      </div>
-    </header>
-
-    <div id="aviso-permissao" class="alerta aviso" hidden>
-      <b>Falta liberar o acesso às notificações.</b> Sem isso o app não vê as compras.
-      <button id="btn-permissao" type="button">Liberar acesso</button>
-    </div>
-    <div id="alerta-pendentes" class="alerta" hidden></div>
-
-    <form id="form-rapido" class="rapido">
-      <input id="lancamento" placeholder="Lançar gasto, ex.: padaria 18,50" autocomplete="off">
-      <button type="submit">Lançar</button>
-    </form>
-    <p id="msg-rapido" class="muted pequeno" role="status"></p>
-
-    <section class="kpis" id="kpis"></section>
-
-    <div class="grade">
-      <section class="card">
-        <h2>Onde você gasta</h2>
-        <p class="muted pequeno">Despesas do mês por categoria. Clique para filtrar as transações.</p>
-        <div id="categorias" class="barras-h"></div>
+  <div id="app" class="app" hidden>
+    <!-- RESUMO -->
+    <main id="v-resumo" class="vista ativa" aria-label="Resumo">
+      <section class="hero">
+        <div class="hero-topo">
+          <button class="hero-nav" id="mes-ant" aria-label="Mês anterior"></button>
+          <button class="hero-mes" id="mes-rotulo" aria-label="Escolher mês"></button>
+          <button class="hero-nav" id="mes-prox" aria-label="Próximo mês"></button>
+          <input type="month" id="mes" class="mes-oculto" aria-hidden="true" tabindex="-1">
+        </div>
+        <p class="hero-rotulo">Gastos no mês</p>
+        <p class="hero-valor" id="hero-total">R$ 0,00</p>
+        <p class="hero-comparativo" id="hero-comp"></p>
+        <div class="hero-stats">
+          <div><span>Média/dia</span><b id="st-media">–</b></div>
+          <div><span>Entradas</span><b id="st-entradas">–</b></div>
+          <div><span>Saldo</span><b id="st-saldo">–</b></div>
+        </div>
       </section>
 
-      <section class="card">
-        <h2>Gastos nos últimos 6 meses</h2>
-        <div id="evolucao" class="barras-v" role="img"></div>
-        <h2 class="mt">Maiores estabelecimentos</h2>
-        <ol id="top" class="lista-top"></ol>
-        <h2 class="mt">Por conta / cartão</h2>
-        <ul id="contas" class="lista-top"></ul>
+      <div id="aviso-permissao" class="aviso" hidden>
+        <span class="aviso-icone" data-ic="sino"></span>
+        <div><b>Libere o acesso às notificações</b><span>Sem isso o app não vê suas compras.</span></div>
+        <button id="btn-permissao" type="button" class="btn-pequeno">Liberar</button>
+      </div>
+      <div id="alerta-pendentes" class="aviso aviso-neutro" hidden></div>
+
+      <section class="cartao entra">
+        <div class="cartao-topo"><h2>Onde você gasta</h2><span class="muted pequeno" id="cat-total"></span></div>
+        <div id="categorias" class="categorias"></div>
       </section>
-    </div>
 
-    <section class="card">
-      <div class="titulo-linha">
-        <h2>Transações <span id="filtro-ativo" class="chip" hidden></span></h2>
-        <input id="busca" type="search" placeholder="Buscar" aria-label="Buscar transações">
-      </div>
-      <p class="muted pequeno">Mudou a categoria? O app aprende e aplica a todas as compras do mesmo estabelecimento.</p>
-      <div class="tabela-wrap">
-        <table>
-          <thead><tr><th>Data</th><th>Estabelecimento</th><th>Categoria</th><th class="num">Valor</th><th></th></tr></thead>
-          <tbody id="transacoes"></tbody>
-        </table>
-      </div>
-    </section>
+      <section class="cartao entra">
+        <div class="cartao-topo"><h2>Últimos 6 meses</h2></div>
+        <div id="evolucao" class="evolucao" role="img"></div>
+      </section>
 
-    <section id="acoes-app" class="card" hidden>
-      <h2>Backup</h2>
-      <p class="muted pequeno">Os dados ficam só neste celular. Exporte de vez em quando (ex.: para o Google Drive) para não perder nada se trocar de aparelho.</p>
-      <div class="linha-botoes">
-        <button id="btn-exportar" type="button">Exportar backup</button>
-        <label class="botao-sec">Restaurar backup<input id="arquivo-importar" type="file" accept="application/json,.json" hidden></label>
+      <div class="grade-2">
+        <section class="cartao entra">
+          <div class="cartao-topo"><h2>Onde mais gastou</h2></div>
+          <ol id="top" class="ranking"></ol>
+        </section>
+        <section class="cartao entra">
+          <div class="cartao-topo"><h2>Por conta e cartão</h2></div>
+          <ul id="contas" class="ranking"></ul>
+        </section>
       </div>
-    </section>
-  </main>
+    </main>
 
-  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+    <!-- TRANSAÇÕES -->
+    <main id="v-transacoes" class="vista" aria-label="Transações">
+      <header class="vista-topo">
+        <h1>Transações</h1>
+        <p class="muted" id="tx-sub"></p>
+      </header>
+      <div class="busca-wrap">
+        <span data-ic="busca"></span>
+        <input id="busca" type="search" placeholder="Buscar estabelecimento" aria-label="Buscar transações">
+      </div>
+      <div id="filtro-ativo" class="chip-filtro" hidden></div>
+      <div id="transacoes" class="lista-dias"></div>
+    </main>
+
+    <!-- AJUSTES -->
+    <main id="v-ajustes" class="vista" aria-label="Ajustes">
+      <header class="vista-topo"><h1>Ajustes</h1></header>
+      <section class="cartao" id="aj-permissao" hidden>
+        <div class="linha-ajuste">
+          <span class="ic-circulo" data-ic="sino"></span>
+          <div><b>Leitura de notificações</b><span class="muted pequeno" id="aj-perm-status"></span></div>
+          <button class="btn-pequeno" id="aj-perm-btn" type="button">Abrir</button>
+        </div>
+      </section>
+      <section class="cartao" id="acoes-app" hidden>
+        <h2>Backup</h2>
+        <p class="muted pequeno">Seus dados ficam só neste celular. Exporte de vez em quando, por exemplo para o Google Drive.</p>
+        <div class="linha-botoes">
+          <button id="btn-exportar" type="button" class="btn-secundario"><span data-ic="baixar"></span>Exportar</button>
+          <label class="btn-secundario"><span data-ic="subir"></span>Restaurar<input id="arquivo-importar" type="file" accept="application/json,.json" hidden></label>
+        </div>
+      </section>
+      <section class="cartao" id="aj-sair">
+        <div class="linha-ajuste">
+          <span class="ic-circulo" data-ic="sair"></span>
+          <div><b>Sair</b><span class="muted pequeno">Esquecer o token neste navegador</span></div>
+          <button class="btn-pequeno" id="sair" type="button">Sair</button>
+        </div>
+      </section>
+      <p class="rodape muted pequeno">Meu Gasto · categorias aprendem com suas correções</p>
+    </main>
+
+    <!-- Navegação inferior -->
+    <nav class="abas" aria-label="Navegação">
+      <button class="aba ativa" data-vista="resumo"><span data-ic="inicio"></span>Resumo</button>
+      <button class="aba" data-vista="transacoes"><span data-ic="lista"></span>Transações</button>
+      <button class="fab" id="fab" aria-label="Lançar gasto"><span data-ic="mais"></span></button>
+      <button class="aba" data-vista="ajustes"><span data-ic="ajustes"></span>Ajustes</button>
+    </nav>
+  </div>
+
+  <!-- Folha inferior genérica -->
+  <div id="veu" class="veu" hidden></div>
+  <section id="folha" class="folha" role="dialog" aria-modal="true" hidden>
+    <div class="folha-alca"></div>
+    <div id="folha-conteudo"></div>
+  </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="app.js" type="module"></script>
 </body>
 </html>
