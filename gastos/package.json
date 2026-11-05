@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node --no-warnings src/server.js",
     "demo": "node --no-warnings src/demo.js",
+    "backup": "node --no-warnings src/backup.js",
     "test": "node --no-warnings --test test/*.test.js"
   }
 }

@@ -49,12 +49,17 @@ DB_PATH=./data/demo.db npm start   # ou só "npm start" para o banco real
 
 Abra `http://localhost:3000` e entre com o `APP_TOKEN`.
 
-## Publicando (necessário para o celular enviar notificações)
+## Opção 1: tudo no próprio celular (Android, recomendado para uso pessoal)
 
-O celular precisa alcançar o servidor por **HTTPS**. Opções simples:
+O servidor roda no celular via Termux, sem hospedagem nem custo, e os dados não saem do
+aparelho. Um instalador faz tudo: **[docs/CELULAR-COMO-SERVIDOR.md](docs/CELULAR-COMO-SERVIDOR.md)**.
+
+## Opção 2: servidor na nuvem ou em casa
+
+Para ver o dashboard de qualquer lugar, o celular precisa alcançar o servidor por **HTTPS**. Opções simples:
 
 - **Railway / Render / Fly.io** com o `Dockerfile` incluído. Configure as variáveis
-  `APP_TOKEN` e `DB_PATH=/data/gastos.db` e **monte um volume persistente em `/data`**
+  `APP_TOKEN`, `HOST=0.0.0.0` e `DB_PATH=/data/gastos.db` e **monte um volume persistente em `/data`**
   (sem volume, o banco é apagado a cada deploy).
 - **Computador ou Raspberry Pi em casa** + Cloudflare Tunnel ou Tailscale Funnel para
   expor com HTTPS sem abrir portas no roteador.
@@ -89,6 +94,7 @@ Todas as rotas exigem `Authorization: Bearer APP_TOKEN` (ou `?token=`), exceto `
 | Fase | Entrega | Status |
 |---|---|---|
 | 1 | Servidor, leitor de notificações, categorização com aprendizado, dashboard, captura via MacroDroid | **pronto** |
+| 1.1 | Rodar no próprio celular (Termux), início automático e backup diário | **pronto** |
 | 2 | App Android próprio (NotificationListenerService) para dispensar o MacroDroid e funcionar offline com fila | planejado |
 | 3 | Bot de WhatsApp (WhatsApp Cloud API): lançar gasto e pedir resumo por mensagem, alertas de orçamento | planejado |
 | 4 | Orçamento por categoria e alertas; importação de extrato/fatura (OFX/CSV/PDF) para conciliar | planejado |

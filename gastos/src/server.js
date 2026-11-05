@@ -176,5 +176,8 @@ export function criarApp({ repo, token }) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const porta = Number(process.env.PORT || 3000);
   const app = criarApp({ repo: abrirBanco(), token: process.env.APP_TOKEN });
-  app.listen(porta, () => console.log(`Meu Gasto rodando em http://localhost:${porta}`));
+  // Padrão: só o próprio aparelho acessa (seguro no celular, mesmo em Wi-Fi público).
+  // Em servidor/nuvem defina HOST=0.0.0.0.
+  const host = process.env.HOST || '127.0.0.1';
+  app.listen(porta, host, () => console.log(`Meu Gasto rodando em http://${host === '0.0.0.0' ? 'localhost' : host}:${porta}`));
 }
